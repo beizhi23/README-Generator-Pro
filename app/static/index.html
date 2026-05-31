@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README Generator Pro + 项目理解助手</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --success-dark: #059669;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #818cf8;
+            --primary-dark: #6366f1;
+            --primary-light: #a5b4fc;
+            --success: #34d399;
+            --success-dark: #10b981;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: var(--radius);
+            color: white;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10%, 10%); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        small {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: var(--bg-primary);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        button.secondary:hover {
+            background: var(--border);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+        }
+
+        .row {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .col {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: var(--border);
+            margin: 2rem 0;
+        }
+
+        pre {
+            background: var(--bg-tertiary);
+            padding: 1.25rem;
+            overflow: auto;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        #fileTree {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            max-height: 550px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .tree-node {
+            margin-left: 20px;
+        }
+
+        .tree-dir {
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .tree-dir:hover {
+            background: var(--bg-secondary);
+            padding-left: 0.25rem;
+        }
+
+        .tree-file {
+            cursor: pointer;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .tree-file:hover {
+            background: var(--bg-secondary);
+            padding-left: 0.25rem;
+        }
+
+        .chat-area {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            margin: 0;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-msg {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .user-msg .message-content {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 18px 18px 4px 18px;
+            display: inline-block;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .assistant-msg {
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .assistant-msg .message-content {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 18px 18px 18px 4px;
+            display: inline-block;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .file-viewer {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            max-height: 550px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .annotation {
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+
+        .spinner {
+            border: 4px solid var(--bg-tertiary);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+            margin: 1.5rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-note {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--info);
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .info-note i {
+            color: var(--info);
+            margin-top: 0.1rem;
+        }
+
+        .progress-stage {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        /* 进度弹窗 */
+        #progressOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        #progressOverlay .modal-content {
+            background: var(--bg-primary);
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            min-width: 400px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+
+        #progressOverlay h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            height: 24px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        #progressMessage {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #uploadStats {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .row {
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .row {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .col {
+                min-width: 100%;
+            }
+
+            #progressOverlay .modal-content {
+                min-width: 90%;
+                margin: 0 1rem;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                width: 44px;
+                height: 44px;
+            }
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        /* 输入组 */
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .input-group input {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-file-alt"></i> README Generator Pro</h1>
+            <p>智能项目文档生成与理解助手 - 一键生成专业README，快速理解项目结构</p>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-cog"></i> 项目配置</h2>
+
+            <form id="genForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label><i class="fab fa-github"></i> GitHub 仓库链接（可选）</label>
+                    <input type="text" name="repo_url" placeholder="https://github.com/user/repo">
+                    <small>输入GitHub仓库地址，自动克隆并分析项目</small>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-folder-open"></i> 或上传本地项目</label>
+                    <select id="uploadType">
+                        <option value="folder">📁 上传文件夹（推荐，自动过滤无用文件）</option>
+                        <option value="zip">🗜️ 上传 ZIP（完整上传，后端解压后过滤）</option>
+                    </select>
+                    <div id="folderUploadDiv" style="margin-top: 1rem;">
+                        <input type="file" id="folderInput" webkitdirectory directory multiple>
+                    </div>
+                    <div id="zipUploadDiv" style="display:none; margin-top: 1rem;">
+                        <input type="file" id="zipInput" accept=".zip">
+                    </div>
+                    <div class="info-note" id="filterNote">
+                        <i class="fas fa-lightbulb"></i>
+                        <div>
+                            <strong>智能过滤提示：</strong>使用"上传文件夹"模式会自动跳过模型权重文件（.bin, .pth, .safetensors等）、大文件（>1MB）、缓存目录（__pycache__、node_modules等）的文件内容，只保留文件名空壳，大幅节省上传时间。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-pencil-alt"></i> 额外要求</label>
+                    <textarea name="user_requirements" placeholder="例如：强调项目性能优势、添加部署步骤、突出技术栈特点等"></textarea>
+                </div>
+
+                <div class="row" style="margin-top: 0;">
+                    <div class="col">
+                        <div class="form-group">
+                            <label><i class="fas fa-globe"></i> 目标平台</label>
+                            <select name="platform_target">
+                                <option value="github">GitHub</option>
+                                <option value="gitee">Gitee</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label><i class="fas fa-robot"></i> AI 模型（可选）</label>
+                            <select name="model_name" id="modelNameSelect">
+                                <option value="">默认模型</option>
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                <option value="deepseek-chat">DeepSeek Chat</option>
+                                <option value="custom">自定义模型</option>
+                            </select>
+                            <input type="text" id="customModelName" placeholder="输入自定义模型名称" style="display:none; margin-top: 0.5rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> API Base URL</label>
+                    <input type="text" name="api_base" id="apiBaseInput" placeholder="https://api.deepseek.com/v1">
+                    <small>自定义API端点，用于兼容不同的大模型服务</small>
+                </div>
+
+                <button type="submit" class="success" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    <i class="fas fa-magic"></i> 生成专业 README
+                </button>
+            </form>
+        </div>
+
+        <!-- 统一进度弹窗（上传 + 生成） -->
+        <div id="progressOverlay">
+            <div class="modal-content">
+                <h3 id="progressTitle">正在处理...</h3>
+                <div class="progress-bar-container">
+                    <div id="progressBarFill" class="progress-bar-fill"></div>
+                </div>
+                <p id="progressMessage">准备中...</p>
+                <div id="indeterminateProgress" style="display:none;">
+                    <div class="spinner"></div>
+                </div>
+                <div id="uploadStats"></div>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+            <div class="col" style="flex: 1.2;">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-sitemap"></i> 项目结构</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">点击文件查看详细内容和功能注释</p>
+                    <div id="fileTree">等待生成项目结构...</div>
+                </div>
+            </div>
+            <div class="col" style="flex: 1.8;">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-code"></i> 文件内容 & 功能注释</h2>
+                    <div id="fileViewer" class="file-viewer">
+                        <div class="annotation" id="fileAnnotation"></div>
+                        <pre id="fileContent">点击左侧文件树中的文件查看内容</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-file-alt"></i> 生成的 README</h2>
+                    <textarea id="readmeContent" rows="22" readonly style="width:100%; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.9rem;"></textarea>
+                    <div class="btn-group">
+                        <button id="modifyBtn">
+                            <i class="fas fa-sync-alt"></i> 修改 README
+                        </button>
+                        <button id="copyBtn" class="secondary">
+                            <i class="fas fa-copy"></i> 复制内容
+                        </button>
+                        <button id="downloadBtn" class="secondary">
+                            <i class="fas fa-download"></i> 下载文件
+                        </button>
+                    </div>
+                    <div class="input-group" style="margin-top: 1rem;">
+                        <input type="text" id="modifyInput" placeholder="输入修改指令，例如：添加安装步骤、强调性能优势等">
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-comments"></i> 项目问答助手</h2>
+                    <div class="chat-area">
+                        <div class="chat-messages" id="chatMessages"></div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chatInput" placeholder="例如：这个项目如何启动？核心模块是哪个？如何贡献代码？">
+                            <button id="sendChatBtn">
+                                <i class="fas fa-paper-plane"></i> 发送
+                            </button>
+                        </div>
+                    </div>
+                    <button id="genUnderstandingBtn" style="margin-top: 1rem; width: 100%;">
+                        <i class="fas fa-book"></i> 生成 UNDERSTANDING.md 项目理解文档
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 前端过滤规则（与后端保持一致） ====================
+        const IGNORE_DIRS = new Set([
+            '__pycache__', '.git', '.venv', 'venv', 'env', 'node_modules',
+            '.cache', '.idea', '.vscode', 'dist', 'build', 'target',
+            '.pytest_cache', '.mypy_cache', '.ruff_cache',
+            'transformers', 'models', 'pretrained_models', 'bert', 'qwen',
+            'llama', 'gpt', 't5', 'vit', 'resnet', 'checkpoints', 'weights'
+        ]);
+
+        const IGNORE_FILE_EXTS = new Set([
+            '.bin', '.pth', '.pt', '.safetensors', '.h5', '.pb', '.onnx',
+            '.ckpt', '.pkl', '.joblib', '.npy', '.npz', '.model', '.weights',
+            '.pickle', '.parquet', '.arrow', '.msgpack'
+        ]);
+
+        const TEXT_EXTS = new Set([
+            '.py', '.js', '.ts', '.json', '.md', '.txt', '.yml', '.yaml', '.toml',
+            '.ini', '.cfg', '.html', '.css', '.scss', '.sql', '.sh', '.java', '.c', '.cpp'
+        ]);
+
+        const MAX_FILE_SIZE_MB = 1;  // 前端只上传小于1MB的文本文件内容，更大的只记录路径
+
+        function shouldIgnoreFile(fileName, fileSize, relativePath) {
+            // 检查路径中是否包含忽略目录
+            const pathParts = relativePath.split('/');
+            for (let part of pathParts.slice(0, -1)) {
+                if (IGNORE_DIRS.has(part)) return true;
+            }
+            // 检查扩展名
+            const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            if (IGNORE_FILE_EXTS.has(ext)) return true;
+            // 检查大小（超过阈值不读取内容，但仍然上传路径占位）
+            if (fileSize > MAX_FILE_SIZE_MB * 1024 * 1024) return true;
+            return false;
+        }
+
+        // ==================== 全局变量 ====================
+        let currentSession = null;
+        let currentSessionConfig = { model_name: '', api_base: '' };
+        let fileTreeJson = null;
+
+        // ---------- 主题切换 ----------
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+
+        // 检查本地存储的主题偏好
+        if (localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeIcon.className = 'fas fa-sun';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // ---------- 辅助函数：控制进度弹窗 ----------
+        function showProgress(title, mode = 'determinate') {
+            const overlay = document.getElementById('progressOverlay');
+            const progressBar = document.getElementById('progressBarFill');
+            const msgDiv = document.getElementById('progressMessage');
+            const titleDiv = document.getElementById('progressTitle');
+            const indeterminateDiv = document.getElementById('indeterminateProgress');
+            const uploadStats = document.getElementById('uploadStats');
+
+            overlay.style.display = 'flex';
+            titleDiv.innerText = title;
+            msgDiv.innerText = '准备中...';
+            uploadStats.innerText = '';
+
+            if (mode === 'indeterminate') {
+                indeterminateDiv.style.display = 'block';
+                progressBar.style.display = 'none';
+            } else {
+                indeterminateDiv.style.display = 'none';
+                progressBar.style.display = 'block';
+                progressBar.style.width = '0%';
+            }
+        }
+
+        function updateProgress(percent, message, stats = '') {
+            const progressBar = document.getElementById('progressBarFill');
+            const msgDiv = document.getElementById('progressMessage');
+            const uploadStats = document.getElementById('uploadStats');
+            if (progressBar && progressBar.style.display !== 'none') {
+                progressBar.style.width = percent + '%';
+            }
+            msgDiv.innerText = message;
+            if (stats) uploadStats.innerText = stats;
+        }
+
+        function hideProgress() {
+            const overlay = document.getElementById('progressOverlay');
+            overlay.style.display = 'none';
+            // 重置状态
+            document.getElementById('progressBarFill').style.width = '0%';
+            document.getElementById('progressMessage').innerText = '';
+            document.getElementById('uploadStats').innerText = '';
+        }
+
+        // ---------- 监听后台生成任务进度（SSE） ----------
+        async function watchGenerationTask(taskId) {
+            return new Promise((resolve, reject) => {
+                const eventSource = new EventSource(`/api/task/${taskId}/stream`);
+                eventSource.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.progress !== undefined) {
+                        updateProgress(data.progress, data.message);
+                    }
+                    if (data.status === 'completed') {
+                        eventSource.close();
+                        hideProgress();
+                        resolve(data.result);
+                    } else if (data.status === 'failed') {
+                        eventSource.close();
+                        hideProgress();
+                        reject(new Error(data.error || data.message));
+                    }
+                };
+                eventSource.onerror = () => {
+                    eventSource.close();
+                    hideProgress();
+                    reject(new Error('连接后台任务进度失败'));
+                };
+            });
+        }
+
+        // ---------- 使用 XHR 上传文件并显示进度 ----------
+        function uploadFormDataWithProgress(formData, onProgress) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/generate-task', true);
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        onProgress(percent, e.loaded, e.total);
+                    }
+                });
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            resolve(response);
+                        } catch (err) {
+                            reject(new Error('解析响应失败: ' + err.message));
+                        }
+                    } else {
+                        reject(new Error(`上传失败 (${xhr.status}): ${xhr.statusText}`));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('网络错误，上传中断'));
+                xhr.send(formData);
+            });
+        }
+
+        // ---------- 表单提交：上传 + 生成（带上传进度条） ----------
+        const form = document.getElementById('genForm');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const repoUrl = document.querySelector('input[name="repo_url"]').value.trim();
+            const userReqs = document.querySelector('textarea[name="user_requirements"]').value;
+            const platform = document.querySelector('select[name="platform_target"]').value;
+            let modelName = document.getElementById('modelNameSelect').value;
+            if (modelName === 'custom') modelName = document.getElementById('customModelName').value.trim();
+            else if (modelName === '') modelName = null;
+            const apiBase = document.getElementById('apiBaseInput').value.trim() || null;
+
+            // 构建 FormData
+            const formData = new FormData();
+
+            if (repoUrl) {
+                formData.append('repo_url', repoUrl);
+            } else {
+                const uploadType = document.getElementById('uploadType').value;
+                if (uploadType === 'folder') {
+                    const files = document.getElementById('folderInput').files;
+                    if (!files.length) { alert('请选择文件夹或输入GitHub链接'); return; }
+                    // 过滤文件（大小/扩展名/忽略目录）
+                    const ignoredFiles = [];
+                    let keptCount = 0;
+                    for (let f of files) {
+                        const relPath = f.webkitRelativePath;
+                        if (shouldIgnoreFile(f.name, f.size, relPath)) {
+                            ignoredFiles.push(relPath);
+                        } else {
+                            formData.append('folder_files', f, f.webkitRelativePath);
+                            keptCount++;
+                        }
+                    }
+                    formData.append('ignored_files', JSON.stringify(ignoredFiles));
+                    // 如果没有有效文件，但 ignoredFiles 不为空，可能用户选的全是忽略文件
+                    if (keptCount === 0 && ignoredFiles.length > 0) {
+                        alert('所选文件夹中的所有文件都被过滤规则忽略（模型权重/大文件/缓存目录等），请选择包含源代码的文件夹');
+                        return;
+                    }
+                } else { // zip
+                    const zipFile = document.getElementById('zipInput').files[0];
+                    if (!zipFile) { alert('请选择ZIP文件'); return; }
+                    formData.append('folder_zip', zipFile);
+                }
+            }
+
+            formData.append('user_requirements', userReqs);
+            formData.append('platform_target', platform);
+            if (modelName) formData.append('model_name', modelName);
+            if (apiBase) formData.append('api_base', apiBase);
+
+            // 显示上传进度条（确定模式）
+            showProgress('⏫ 正在上传项目文件', 'determinate');
+
+            let taskId = null;
+            try {
+                // 执行上传（带进度回调）
+                const uploadResponse = await uploadFormDataWithProgress(formData, (percent, loaded, total) => {
+                    const mbLoaded = (loaded / 1024 / 1024).toFixed(1);
+                    const mbTotal = (total / 1024 / 1024).toFixed(1);
+                    updateProgress(percent, `上传中 ${percent}%`, `${mbLoaded} MB / ${mbTotal} MB`);
+                });
+                taskId = uploadResponse.task_id;
+                if (!taskId) throw new Error('服务器未返回任务ID');
+
+                // 上传完成，切换到生成进度阶段
+                showProgress('🤖 正在生成 README', 'determinate');
+                updateProgress(0, '后台分析中，请稍候...');
+
+                // 监听后台任务进度
+                const result = await watchGenerationTask(taskId);
+                // 保存会话信息
+                currentSession = result.session_id;
+                currentSessionConfig = { model_name: modelName, api_base: apiBase };
+                document.getElementById('readmeContent').value = result.readme_content;
+                if (result.file_tree_json) {
+                    fileTreeJson = result.file_tree_json;
+                    renderFileTree(fileTreeJson);
+                } else if (result.file_tree_preview) {
+                    document.getElementById('fileTree').innerText = result.file_tree_preview;
+                }
+            } catch (err) {
+                hideProgress();
+                alert('操作失败: ' + err.message);
+            }
+        };
+
+        // ========== 渲染文件树 (递归) ==========
+        function renderFileTree(node, container = null) {
+            const root = container || document.getElementById('fileTree');
+            if (!container) root.innerHTML = '';
+            const ul = document.createElement('ul');
+            ul.style.listStyle = 'none';
+            ul.style.paddingLeft = '0';
+            function build(n, parentUl) {
+                for (let [name, info] of Object.entries(n)) {
+                    const li = document.createElement('li');
+                    if (info.type === 'dir') {
+                        const span = document.createElement('span');
+                        span.innerHTML = `<i class="fas fa-folder"></i> ${name}`;
+                        span.className = 'tree-dir';
+                        span.onclick = () => {
+                            let childUl = li.querySelector('ul');
+                            if (childUl) childUl.style.display = childUl.style.display === 'none' ? 'block' : 'none';
+                            else {
+                                childUl = document.createElement('ul');
+                                childUl.style.paddingLeft = '20px';
+                                childUl.style.listStyle = 'none';
+                                build(info.children, childUl);
+                                li.appendChild(childUl);
+                            }
+                        };
+                        li.appendChild(span);
+                    } else {
+                        const span = document.createElement('span');
+                        span.innerHTML = `<i class="fas fa-file-code"></i> ${name}`;
+                        span.className = 'tree-file';
+                        span.onclick = () => loadFileContent(info.path);
+                        li.appendChild(span);
+                    }
+                    parentUl.appendChild(li);
+                }
+            }
+            build(node, ul);
+            if (!container) root.appendChild(ul);
+            else container.appendChild(ul);
+        }
+
+        async function loadFileContent(filePath) {
+            if (!currentSession) return;
+            const resp = await fetch(`/api/file_content?session_id=${currentSession}&file_path=${encodeURIComponent(filePath)}`);
+            const data = await resp.json();
+            document.getElementById('fileAnnotation').innerHTML = data.annotation ? `<i class="fas fa-info-circle"></i> 功能注释：${data.annotation}` : '';
+            document.getElementById('fileContent').innerText = data.content || '无内容';
+        }
+
+        // 聊天相关
+        function addMessage(text, role) {
+            const chatMessages = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${role}-msg`;
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = text;
+            div.appendChild(contentDiv);
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendChatWithLoading(sessionId, question) {
+            showProgress('💬 AI 思考中', 'indeterminate');
+            try {
+                const resp = await fetch(`/api/chat?session_id=${sessionId}&question=${encodeURIComponent(question)}`, { method: 'POST' });
+                const data = await resp.json();
+                hideProgress();
+                return data.answer;
+            } catch (err) {
+                hideProgress();
+                throw err;
+            }
+        }
+
+        async function genUnderstandingWithLoading(sessionId) {
+            showProgress('📘 生成项目理解文档', 'indeterminate');
+            try {
+                const resp = await fetch(`/api/understanding?session_id=${sessionId}`, { method: 'POST' });
+                const data = await resp.json();
+                hideProgress();
+                return data.content;
+            } catch (err) {
+                hideProgress();
+                throw err;
+            }
+        }
+
+        // 修改 README（也使用进度条，复用后台任务流程）
+        async function modifyWithProgress(sessionId, modification, platform, modelName, apiBase) {
+            const submitResp = await fetch('/api/modify-task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    modification: modification,
+                    platform_target: platform,
+                    model_name: modelName,
+                    api_base: apiBase
+                })
+            });
+            const { task_id } = await submitResp.json();
+            showProgress('🔄 正在修改 README', 'determinate');
+            updateProgress(0, '提交修改指令成功，等待生成...');
+            const result = await watchGenerationTask(task_id);
+            return result;
+        }
+
+        // ---------- UI 事件绑定 ----------
+        // 上传方式切换
+        const uploadType = document.getElementById('uploadType');
+        const folderDiv = document.getElementById('folderUploadDiv');
+        const zipDiv = document.getElementById('zipUploadDiv');
+        const filterNote = document.getElementById('filterNote');
+        uploadType.onchange = () => {
+            if (uploadType.value === 'folder') {
+                folderDiv.style.display = 'block';
+                zipDiv.style.display = 'none';
+                filterNote.style.display = 'flex';
+            } else {
+                folderDiv.style.display = 'none';
+                zipDiv.style.display = 'block';
+                filterNote.style.display = 'none';
+            }
+        };
+        // 自定义模型
+        const modelSelect = document.getElementById('modelNameSelect');
+        const customModel = document.getElementById('customModelName');
+        modelSelect.onchange = () => {
+            customModel.style.display = modelSelect.value === 'custom' ? 'block' : 'none';
+        };
+        // 修改按钮
+        document.getElementById('modifyBtn').onclick = async () => {
+            if (!currentSession) { alert('请先生成 README'); return; }
+            const modification = document.getElementById('modifyInput').value;
+            if (!modification) return;
+            const platform = document.querySelector('select[name="platform_target"]').value;
+            const modelName = currentSessionConfig.model_name;
+            const apiBase = currentSessionConfig.api_base;
+            try {
+                const result = await modifyWithProgress(currentSession, modification, platform, modelName, apiBase);
+                document.getElementById('readmeContent').value = result.readme_content;
+            } catch (err) {
+                alert('修改失败：' + err.message);
+            }
+        };
+        // 复制按钮
+        document.getElementById('copyBtn').onclick = () => {
+            const readmeContent = document.getElementById('readmeContent').value;
+            if (!readmeContent) { alert('没有可复制的内容'); return; }
+            navigator.clipboard.writeText(readmeContent).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('复制失败：' + err.message);
+            });
+        };
+        // 下载按钮
+        document.getElementById('downloadBtn').onclick = () => {
+            const readmeContent = document.getElementById('readmeContent').value;
+            if (!readmeContent) { alert('没有可下载的内容'); return; }
+            const blob = new Blob([readmeContent], {type: 'text/markdown'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'README.md';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+        // 聊天发送
+        const sendBtn = document.getElementById('sendChatBtn');
+        const chatInput = document.getElementById('chatInput');
+        async function sendMessage() {
+            const q = chatInput.value.trim();
+            if (!q || !currentSession) return;
+            addMessage(q, 'user');
+            chatInput.value = '';
+            try {
+                const answer = await sendChatWithLoading(currentSession, q);
+                addMessage(answer, 'assistant');
+            } catch (err) {
+                addMessage('出错：' + err.message, 'assistant');
+            }
+        }
+        sendBtn.onclick = sendMessage;
+        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        // 生成 UNDERSTANDING.md
+        document.getElementById('genUnderstandingBtn').onclick = async () => {
+            if (!currentSession) { alert('请先生成 README'); return; }
+            try {
+                const content = await genUnderstandingWithLoading(currentSession);
+                const blob = new Blob([content], {type: 'text/markdown'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'UNDERSTANDING.md';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('生成失败：' + err.message);
+            }
+        };
+    </script>
+</body>
+</html>

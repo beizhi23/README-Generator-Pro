@@ -1,0 +1,28 @@
+readme-generator-pro/
+├── .env.example
+├── requirements.txt
+├── run.py
+├── struct.txt
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── analyzer.py
+│   │   ├── faq_generator.py
+│   │   ├── generator.py
+│   │   ├── renderer.py
+│   │   └── utils.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── schemas.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── github_service.py
+│   │   ├── llm_service.py
+│   │   └── task_manager.py
+│   └── static/
+│       └── index.html        

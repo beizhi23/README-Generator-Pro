@@ -260,10 +260,10 @@ LLM_API_KEY=your_deepseek_api_key
 ```
 然后在 Web UI 或 API 请求中可进一步覆盖。
 
-### 🆕 Q：生成的 HTML 页面中 GitHub 链接不正确怎么办？
+### Q：生成的 HTML 页面中 GitHub 链接不正确怎么办？
 **A**：在点击“生成项目介绍网页”之前，请在 Web UI 的“项目主页 URL”输入框中填入正确的 GitHub 仓库地址。该地址会作为页面中按钮的跳转目标。
 
-### 🆕 Q：HTML 页面中的 Mermaid 图表没有显示？
+### Q：HTML 页面中的 Mermaid 图表没有显示？
 **A**：请检查生成的 HTML 文件是否被完整保存（某些浏览器可能阻止脚本）。建议使用 Chrome、Edge 或 Firefox 打开，并确保网络畅通以便加载 Mermaid CDN。也可以将 HTML 部署到任意 HTTP 服务器上查看。
 
 ---

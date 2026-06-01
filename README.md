@@ -70,7 +70,7 @@ python run.py
 3. 选择目标平台（GitHub 或 Gitee）
 4. 点击 **生成 README**，系统会先上传并分析项目，右侧将显示项目结构树和生成的文档
 5. 如需修改 README，在下方的输入框中填写自然语言指令（如“删除 API 文档章节”），点击 **修改 README**
-6. **🆕 生成项目介绍网页**：在 README 生成后，于“项目主页 URL”输入框中填写或确认 GitHub 地址（支持自定义），然后点击 **生成项目介绍网页（HTML）** 按钮，系统将调用 LLM 生成一篇论文风格、包含 Mermaid 图表的完整 HTML 页面，并自动下载为 `project_page.html`
+6. ** 生成项目介绍网页**：在 README 生成后，于“项目主页 URL”输入框中填写或确认 GitHub 地址（支持自定义），然后点击 **生成项目介绍网页（HTML）** 按钮，系统将调用 LLM 生成一篇论文风格、包含 Mermaid 图表的完整 HTML 页面，并自动下载为 `project_page.html`
 
 > 📁 **上传过滤说明**：为提升速度和节约资源，系统会自动跳过以下文件的内容（仅保留文件名占位）：  
 > - 常见缓存目录（`__pycache__`、`node_modules`、`.venv` 等）  
@@ -107,7 +107,7 @@ curl -X POST http://localhost:8000/api/modify \
   }'
 ```
 
-#### 🆕 生成项目介绍 HTML 页面
+#### 生成项目介绍 HTML 页面
 ```bash
 curl -X POST http://localhost:8000/api/generate_html_page \
   -F "session_id=你的会话ID" \
@@ -170,7 +170,7 @@ curl -X POST http://localhost:8000/api/generate_html_page \
 
 **响应**：同 `/api/generate`。
 
-### 🆕 `POST /api/generate_html_page`
+### `POST /api/generate_html_page`
 生成论文风格的项目介绍 HTML 页面。
 
 **请求参数**（`multipart/form-data`）：

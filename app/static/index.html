@@ -666,7 +666,7 @@
                     <div class="info-note" id="filterNote">
                         <i class="fas fa-lightbulb"></i>
                         <div>
-                            <strong>智能过滤提示：</strong>使用"上传文件夹"模式会自动跳过模型权重文件（.bin, .pth, .safetensors等）、大文件（>1MB）、缓存目录（__pycache__、node_modules等）的文件内容，只保留文件名空壳，大幅节省上传时间。
+                            <strong>智能过滤提示：</strong>使用"上传文件夹"模式会自动跳过模型权重文件（.bin, .pth, .safetensors等）、大文件（>1MB）、缓存目录（__pycache__、node_modules等）的文件内容，只保留文件名空壳，大幅节省上传时间。如果zip文件过大导致上传超时，请在本地解压之后再上传文件夹。
                         </div>
                     </div>
                 </div>
@@ -725,6 +725,20 @@
                 </div>
                 <div id="uploadStats"></div>
             </div>
+        </div>
+
+                <!-- 项目主页 URL 设置 -->
+        <div class="form-group">
+            <label><i class="fab fa-github"></i> 项目主页 URL（用于生成的 HTML 中的链接）</label>
+            <input type="text" id="githubUrlOverride" placeholder="https://github.com/yourusername/yourrepo">
+            <small>设置后将作为 HTML 页面中的 GitHub 跳转地址，留空则尝试从仓库链接自动提取。</small>
+        </div>
+
+        <!-- 生成 HTML 按钮 -->
+        <div class="btn-group" style="margin-top: 0.5rem;">
+            <button type="button" id="genHtmlBtn" class="success">
+                <i class="fas fa-file-code"></i> 生成项目介绍网页（project_page.html）
+            </button>
         </div>
 
         <hr>
@@ -1006,6 +1020,54 @@
             formData.append('platform_target', platform);
             if (modelName) formData.append('model_name', modelName);
             if (apiBase) formData.append('api_base', apiBase);
+
+            // 自动同步 GitHub 地址
+            const repoUrlInput = document.querySelector('input[name="repo_url"]');
+            const githubUrlOverride = document.getElementById('githubUrlOverride');
+            repoUrlInput.addEventListener('input', () => {
+                const url = repoUrlInput.value.trim();
+                if (url && url.includes('github.com')) {
+                    githubUrlOverride.value = url;
+                }
+            });
+
+            // 生成 HTML 页面按钮
+            document.getElementById('genHtmlBtn').onclick = async () => {
+                if (!currentSession) {
+                    alert('请先生成 README 以建立项目会话');
+                    return;
+                }
+                const customGithubUrl = githubUrlOverride.value.trim();
+                const formData = new FormData();
+                formData.append('session_id', currentSession);
+                if (customGithubUrl) {
+                    formData.append('github_url', customGithubUrl);
+                }
+                // 展示进度提示（复用进度弹窗但改为不确定模式）
+                showProgress('📄 正在生成project_page', 'indeterminate');
+                try {
+                    const response = await fetch('/api/generate_html_page', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || '生成失败');
+                    hideProgress();
+                    // 将 HTML 内容保存为文件并下载
+                    const blob = new Blob([data.html_content], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'project_page.html';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    alert('HTML 文件已生成并开始下载，请查看您的下载文件夹。');
+                } catch (err) {
+                    hideProgress();
+                    alert('生成失败: ' + err.message);
+                }
+            };
+
 
             // 显示上传进度条（确定模式）
             showProgress('⏫ 正在上传项目文件', 'determinate');

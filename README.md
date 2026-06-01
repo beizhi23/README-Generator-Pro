@@ -5,9 +5,11 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688)](https://fastapi.tiangolo.com/)
 [![OpenAI](https://img.shields.io/badge/LLM-API-412991)](https://platform.openai.com/)
 
-**README Generator Pro** 是一款基于大语言模型（LLM）的智能 README 文档生成工具。只需提供 GitHub 仓库链接或上传工程文件夹，即可在数秒内自动生成结构完整、排版美观、内容专业的 `README.md` 文件。支持自然语言交互修改、多编程语言自适应、平台渲染优化（GitHub / Gitee）以及项目结构可视化分析。
+**README Generator Pro** 是一款基于大语言模型（LLM）的智能文档生成工具。只需提供 GitHub 仓库链接或上传工程文件夹，即可在数秒内自动生成结构完整、排版美观、内容专业的 `README.md` 文件。同时支持一键生成**论文级别的项目介绍网页**（`project_page.html`），包含 Mermaid 架构图、模块详解和 GitHub 跳转链接，适合项目展示与分享。
 
-> ⚠️ 注意：当前版本侧重于核心 README 生成与项目理解，Issues 自动生成 FAQ 功能尚在开发中，预计后续版本支持。
+> ⚠️ 注意：
+>           1.当前版本侧重于核心 README 生成与项目理解，Issues 自动生成 FAQ 功能尚在开发中，预计后续版本支持；
+>           2.如果zip文件过大导致上传超时，请在本地解压之后再上传文件夹。
 
 ---
 
@@ -22,6 +24,7 @@
 - ❓ **通用 FAQ 生成** – 根据项目语言和框架生成通用常见问题（后续计划集成 GitHub Issues）
 - 🎨 **平台适配** – 针对 GitHub、Gitee 的 Markdown 渲染差异进行基础语法调整（任务列表、表格分隔符等）
 - 💻 **友好交互界面** – 提供 Web UI 与 RESTful API 两种使用方式，支持 SSE 进度推送
+- 🆕 **论文级项目介绍网页** – 一键生成包含 Mermaid 图表（架构图、依赖图、目录结构图）、专业排版、GitHub 跳转按钮的独立 HTML 页面，适合对外展示或技术文档存档
 
 ---
 
@@ -33,8 +36,8 @@
 
 ### 克隆仓库
 ```bash
-git clone https://github.com/yourusername/readme-generator-pro.git
-cd readme-generator-pro
+git clone https://github.com/beizhi23/README-Generator-Pro.git
+cd README-Generator-Pro
 ```
 
 ### 安装依赖
@@ -46,8 +49,8 @@ pip install -r requirements.txt
 复制 `.env.example` 为 `.env`，并根据需要修改：
 ```ini
 LLM_API_KEY=your_api_key_here           # 例如 OpenAI 或 DeepSeek 的 API Key，留空则启用 Mock 模式
-LLM_API_BASE=https://api.openai.com/v1  # 自定义 API 端点，如 DeepSeek: https://api.deepseek.com/v1
-LLM_MODEL=gpt-3.5-turbo                 # 使用的模型名称，如 deepseek-chat
+LLM_API_BASE=https://api.deepseek.com/v1  # 自定义 API 端点，如 openai: https://api.openai.com/v1
+LLM_MODEL=deepseek-chat              # 使用的模型名称，如 gpt-3.5-turbo   
 GITHUB_TOKEN=optional_github_token      # 可选，用于访问私有仓库（暂未完全集成）
 USE_MOCK_LLM=false                      # true 时无需 API Key，返回示例 README
 ```
@@ -68,7 +71,8 @@ python run.py
 2. （可选）填写额外要求，例如“强调性能测试结果”“添加 Docker 部署说明”
 3. 选择目标平台（GitHub 或 Gitee）
 4. 点击 **生成 README**，系统会先上传并分析项目，右侧将显示项目结构树和生成的文档
-5. 如需修改，在下方的输入框中填写自然语言指令（如“删除 API 文档章节”），点击 **修改 README**
+5. 如需修改 README，在下方的输入框中填写自然语言指令（如“删除 API 文档章节”），点击 **修改 README**
+6. **🆕 生成项目介绍网页**：在 README 生成后，于“项目主页 URL”输入框中填写或确认 GitHub 地址（支持自定义），然后点击 **生成项目介绍网页（HTML）** 按钮，系统将调用 LLM 生成一篇论文风格、包含 Mermaid 图表的完整 HTML 页面，并自动下载为 `project_page.html`
 
 > 📁 **上传过滤说明**：为提升速度和节约资源，系统会自动跳过以下文件的内容（仅保留文件名占位）：  
 > - 常见缓存目录（`__pycache__`、`node_modules`、`.venv` 等）  
@@ -105,16 +109,25 @@ curl -X POST http://localhost:8000/api/modify \
   }'
 ```
 
+#### 🆕 生成项目介绍 HTML 页面
+```bash
+curl -X POST http://localhost:8000/api/generate_html_page \
+  -F "session_id=你的会话ID" \
+  -F "github_url=https://github.com/你的用户名/你的仓库"
+```
+
 响应示例：
 ```json
 {
-  "session_id": "abc-123",
-  "readme_content": "# 项目名称\n...",
-  "file_tree_preview": "📁 project/\n  - main.py  # 主程序入口"
+  "html_content": "<!DOCTYPE html><html>...完整HTML代码...</html>"
 }
 ```
+> 返回的 HTML 可直接保存为 `project_page.html` 并在浏览器中打开。
 
-> 💡 对于大型项目，建议使用异步任务接口 `/api/generate-task` + SSE 进度查询（Web UI 已集成）。
+#### 其他辅助接口
+- `POST /api/chat?session_id=xxx&question=...` – 项目问答助手
+- `POST /api/understanding?session_id=xxx` – 生成 `UNDERSTANDING.md` 项目理解文档
+- `GET /api/file_content?session_id=xxx&file_path=...` – 获取文件内容及功能注释
 
 ---
 
@@ -159,15 +172,28 @@ curl -X POST http://localhost:8000/api/modify \
 
 **响应**：同 `/api/generate`。
 
+### 🆕 `POST /api/generate_html_page`
+生成论文风格的项目介绍 HTML 页面。
+
+**请求参数**（`multipart/form-data`）：
+| 参数名         | 类型   | 必填 | 描述                                                         |
+| -------------- | ------ | ---- | ------------------------------------------------------------ |
+| `session_id`   | string | 是   | 生成 README 时返回的会话 ID                                  |
+| `github_url`   | string | 否   | 自定义的 GitHub 仓库地址（若未提供，系统会尝试从项目信息中提取或设为 `#`） |
+
+**响应**：
+```json
+{
+  "html_content": "完整的 HTML 代码字符串"
+}
+```
+
+> 生成的 HTML 包含 Mermaid 图表（架构图、依赖关系图、目录结构图等），响应式设计，可直接保存为 `.html` 文件用浏览器打开。
+
 ### 异步任务接口（推荐用于大项目）
 - `POST /api/generate-task` – 提交生成任务，返回 `task_id`
 - `GET /api/task/{task_id}/stream` – SSE 实时获取进度和结果
 - Web UI 已完整集成，您也可以参考前端代码自行调用。
-
-其他辅助接口：
-- `POST /api/chat?session_id=xxx&question=...` – 项目问答助手
-- `POST /api/understanding?session_id=xxx` – 生成 `UNDERSTANDING.md` 项目理解文档
-- `GET /api/file_content?session_id=xxx&file_path=...` – 获取文件内容及功能注释
 
 ---
 
@@ -194,7 +220,7 @@ black app/ run.py
 ```
 
 ### 报告 Bug 或建议
-请在 [Issues](https://github.com/yourusername/readme-generator-pro/issues) 页面详细描述问题或新功能建议，并附上相关日志或示例。
+请在 [Issues](https://github.com/beizhi23/README-Generator-Pro/issues) 页面详细描述问题或新功能建议，并附上相关日志或示例。
 
 ---
 
@@ -207,7 +233,7 @@ black app/ run.py
 ## ❓ 常见问题（FAQ）
 
 ### Q：没有 LLM API Key 可以正常使用吗？
-**A**：可以。将环境变量 `USE_MOCK_LLM` 设置为 `true`（或不设置 `LLM_API_KEY`，系统自动启用），将使用内置模拟生成器输出示例 README。但推荐配置真实 API Key 以获得更精准、丰富的内容。
+**A**：可以。将环境变量 `USE_MOCK_LLM` 设置为 `true`（或不设置 `LLM_API_KEY`，系统自动启用），将使用内置模拟生成器输出示例 README。但推荐配置真实 API Key 以获得更精准、丰富的内容。生成 HTML 页面时 Mock 模式会输出一个基础模板，效果受限。
 
 ### Q：支持私有 GitHub 仓库吗？
 **A**：当前版本暂未完全支持。您可以在 `.env` 中配置 `GITHUB_TOKEN`，但需要自行修改 `analyzer.analyze_github` 传递 token。后续版本会完善此功能。
@@ -236,25 +262,20 @@ LLM_API_KEY=your_deepseek_api_key
 ```
 然后在 Web UI 或 API 请求中可进一步覆盖。
 
+### 🆕 Q：生成的 HTML 页面中 GitHub 链接不正确怎么办？
+**A**：在点击“生成项目介绍网页”之前，请在 Web UI 的“项目主页 URL”输入框中填入正确的 GitHub 仓库地址。该地址会作为页面中按钮的跳转目标。
+
+### 🆕 Q：HTML 页面中的 Mermaid 图表没有显示？
+**A**：请检查生成的 HTML 文件是否被完整保存（某些浏览器可能阻止脚本）。建议使用 Chrome、Edge 或 Firefox 打开，并确保网络畅通以便加载 Mermaid CDN。也可以将 HTML 部署到任意 HTTP 服务器上查看。
+
 ---
 
 ## 📞 联系与支持
 
-- 项目作者：[Your Name](mailto:youremail@example.com)
-- 项目地址：[https://github.com/yourusername/readme-generator-pro](https://github.com/yourusername/readme-generator-pro)
-- 问题反馈：请提交 [GitHub Issues](https://github.com/yourusername/readme-generator-pro/issues)
+- 项目作者：[beizhi23](mailto:cn_gym@qq.com)
+- 项目地址：[https://github.com/beizhi23/README-Generator-Pro]
+- 问题反馈：请提交 [GitHub Issues](https://github.com/beizhi23/README-Generator-Pro/issues)或者发邮件至[cn_gym@qq.com]
 
 ---
 
 **如果这个项目对您有帮助，请给一个 ⭐ Star 支持我们！**
-```
-
-### 主要改动说明：
-1. **环境变量** – 统一为 `LLM_API_KEY`，与代码一致；补充了 `LLM_API_BASE` 和 `LLM_MODEL` 的说明。
-2. **FAQ 功能** – 明确标注为“通用 FAQ”，Issues 集成标注为后续版本。
-3. **过滤规则** – 新增上传过滤说明，解释为何部分文件未被分析。
-4. **API 示例** – 修正 curl 中的 `folder` 为 `folder_zip`；补充异步任务说明。
-5. **弱化承诺** – 将“深度项目分析”改为“基础项目分析”，强调 LLM 生成命令的不确定性。
-6. **私有仓库** – 明确暂未完全支持。
-7. **自定义模型** – 增加 DeepSeek 配置示例。
-8. **其他细节** – 修正 OpenAI 链接，补充 SSE 进度说明，添加 Web UI 中修改操作的描述。

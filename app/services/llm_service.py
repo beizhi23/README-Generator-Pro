@@ -30,7 +30,8 @@ class LLMService:
             raise ValueError("LLM_API_KEY 未配置且未处于 Mock 模式")
         return AsyncOpenAI(api_key=self.api_key, base_url=base)
 
-    async def generate_readme(self, prompt: str, model: Optional[str] = None, api_base: Optional[str] = None) -> str:
+    async def generate_readme(self, prompt: str, model: Optional[str] = None,
+                              api_base: Optional[str] = None, max_tokens: int = 8000) -> str:
         if self.use_mock:
             logger.info("使用 Mock 模式生成 README")
             return self._mock_readme(prompt)
@@ -42,12 +43,13 @@ class LLMService:
                 model=selected_model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=4000
+                max_tokens=max_tokens
             )
             return response.choices[0].message.content
         except Exception as e:
             logger.error(f"LLM 调用失败: {e}，降级为 Mock 模式")
             return f"❌ LLM 调用失败: {str(e)}\n\n" + self._mock_readme(prompt)
+
 
     def _mock_readme(self, prompt: str) -> str:
         """生成模拟 README（移除对不存在方法的调用）"""

@@ -80,3 +80,67 @@ async def generate_understanding(project_info: dict, model_name: str = None, api
 """
     generate_understanding_readme = await llm_service.generate_readme(prompt, model=model_name, api_base=api_base)
     return generate_understanding_readme
+
+
+# app/core/generator.py
+async def generate_project_html(
+        project_info: Dict,
+        github_url: str = None,
+        model_name: Optional[str] = None,
+        api_base: Optional[str] = None
+) -> str:
+    """生成论文风格的项目介绍 HTML 页面，包含 Mermaid 图表和 GitHub 链接"""
+
+    # 准备文件结构（JSON 字符串）
+    file_tree_json = project_info.get("file_tree_json", {})
+    import json
+    file_tree_str = json.dumps(file_tree_json, indent=2, ensure_ascii=False)[:2000]
+
+    # 构建详细的提示
+    prompt = f"""
+你是一位技术文档专家和前端设计师。请根据以下项目信息，生成一个完整的、可直接在浏览器中打开的 HTML 文档。
+该文档应具有以下特点：
+- 论文级别的排版，专业、清晰、精美，适合展示项目全貌。
+- 包含以下章节：项目概述、核心架构、模块详解、安装与使用、API 参考、贡献指南、许可证。
+- 必须包含至少 3 个 Mermaid 图表（例如：系统架构图、模块依赖图、数据流图或项目目录结构图）。
+- 包含一个醒目的 GitHub 链接按钮，点击后跳转到指定的仓库地址（地址由外部提供：{github_url if github_url else "未提供，请先占位并提示用户设置"}）。
+- 样式现代，支持明/暗色自适应（或提供优雅的浅色主题），使用 Flexbox/Grid 布局，代码块使用深色背景。
+- 无需任何外部依赖（但允许使用 FontAwesome、Google Fonts 等 CDN，以及 Mermaid CDN）。
+- 页面标题自动从项目名称生成。
+- 内容真实，基于以下数据生成，不得编造不存在的功能。
+
+项目分析结果：
+- 项目名称/来源：{project_info.get('source_name', '未知项目')}
+- 主要语言：{project_info.get('language')}
+- 使用的框架：{project_info.get('framework')}
+- 依赖库摘要：{project_info.get('dependencies')}
+- 入口文件：{project_info.get('entry_points')}
+- 许可证类型：{project_info.get('license')}
+- 是否包含示例代码：{project_info.get('has_examples')}
+
+文件结构（JSON 树）：
+{file_tree_str}
+
+关键代码片段（入口文件前 2000 字符）：
+{project_info.get('code_snippets', {})}
+
+文件内容片段（其他关键文件）：
+{ {k: v[:800] for k, v in project_info.get('file_contents', {}).items() if k in project_info.get('entry_points', [])[:3]} }
+
+请直接输出完整的 HTML 代码，确保 Mermaid 图表正确加载（在 <head> 中引入 Mermaid，并调用 mermaid.initialize）。不要包含任何解释文字。
+"""
+    # 调用 LLM，使用较大的 max_tokens
+    html_content = await llm_service.generate_readme(
+        prompt,
+        model=model_name,
+        api_base=api_base,
+        max_tokens=8000  # 足够生成完整页面
+    )
+    # 确保返回的内容是完整的 HTML，如果模型可能输出多余标记，简单清理
+    if not html_content.strip().startswith("<!DOCTYPE html>"):
+        # 尝试从第一个 <html 或 <!DOCTYPE 开始截取
+        import re
+        match = re.search(r'(<!DOCTYPE html>.*|<\s*html.*)', html_content, re.DOTALL | re.IGNORECASE)
+        if match:
+            html_content = match.group(1)
+    return html_content

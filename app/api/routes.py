@@ -14,6 +14,9 @@ import tempfile
 import shutil
 import zipfile
 from typing import List
+from app.core.generator import generate_project_html
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
@@ -462,3 +465,37 @@ async def _run_modify_task(task_id: str):
         task_manager.complete_task(task_id, result)
     except Exception as e:
         task_manager.fail_task(task_id, str(e))
+
+
+@router.post("/generate_html_page")
+async def generate_html_page(
+    session_id: str = Form(...),          # 必须使用 Form
+    github_url: str = Form(None)          # 可选字段同样使用 Form
+):
+    """生成项目介绍 HTML 页面（论文风格）"""
+    session = sessions.get(session_id)
+    if not session:
+        raise HTTPException(404, "会话不存在或已过期")
+
+    # 如果没有提供 github_url，尝试从 project_info 中提取
+    if not github_url:
+        source = session["project_info"].get("source_name", "")
+        if "github.com" in source:
+            github_url = source
+        else:
+            github_url = "#"
+
+    model_name = session.get("model_name")
+    api_base = session.get("api_base")
+
+    try:
+        html_content = await generate_project_html(
+            session["project_info"],
+            github_url=github_url,
+            model_name=model_name,
+            api_base=api_base
+        )
+        return {"html_content": html_content}
+    except Exception as e:
+        logger.error(f"生成 HTML 页面失败: {e}")
+        raise HTTPException(500, f"生成失败: {str(e)}")

@@ -22,6 +22,7 @@
 - ❓ **通用 FAQ 生成** – 根据项目语言和框架生成通用常见问题（后续计划集成 GitHub Issues）
 - 🎨 **平台适配** – 针对 GitHub、Gitee 的 Markdown 渲染差异进行基础语法调整（任务列表、表格分隔符等）
 - 💻 **友好交互界面** – 提供 Web UI 与 RESTful API 两种使用方式，支持 SSE 进度推送
+- 🤖 **Codex / Claude Code Skill 集成** – 可作为本地 AI 编程助手 skill 使用，在 Codex 或 Claude Code 中通过自然语言启动 Web UI、调用 API 或生成项目文档
 - 🆕 **论文级项目介绍网页** – 一键生成包含 Mermaid 图表（架构图、依赖图、目录结构图）、专业排版、GitHub 跳转按钮的独立 HTML 页面，适合对外展示或技术文档存档
 
 ---
@@ -129,6 +130,84 @@ curl -X POST http://localhost:8000/api/generate_html_page \
 
 ---
 
+## 🤖 作为 Codex / Claude Code Skill 使用
+
+本项目已经可以被包装为 AI 编程助手的本地 skill，在不改变原有 FastAPI 功能的前提下，让 Codex 或 Claude Code 自动定位项目、启动 Web UI、调用接口并生成 README 文档。
+
+### Codex 中使用
+
+将项目作为 skill 放入 Codex 的 skills 目录后，推荐结构如下：
+
+```text
+%USERPROFILE%\.codex\skills\readme-generator-pro\
+├── SKILL.md
+├── agents\
+│   └── openai.yaml
+├── scripts\
+│   └── start_server.ps1
+└── assets\
+    └── readme-generator-pro\
+        ├── .env
+        ├── requirements.txt
+        ├── run.py
+        └── app\
+```
+
+在 Codex 对话中可以直接说：
+
+```text
+用 readme-generator-pro 启动本地 Web UI
+```
+
+或：
+
+```text
+使用 readme-generator-pro 帮我为这个 GitHub 仓库生成 README
+```
+
+Codex 会根据 `SKILL.md` 的说明进入 `assets/readme-generator-pro`，使用原有 `python run.py` 入口启动服务。启动后访问：
+
+```text
+http://localhost:8000
+```
+
+也可以手动运行 skill 内置脚本：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\.codex\skills\readme-generator-pro\scripts\start_server.ps1"
+```
+
+### Claude Code 中使用
+
+Claude Code 使用独立的 skills 目录，不能自动读取 Codex 的 `.codex/skills`。如果需要在 Claude Code 中使用，可以复制同一个 skill：
+
+```powershell
+New-Item -ItemType Directory -Force $HOME\.claude\skills | Out-Null
+Copy-Item -Recurse -Force `
+  $HOME\.codex\skills\readme-generator-pro `
+  $HOME\.claude\skills\readme-generator-pro
+```
+
+然后在 Claude Code 中调用：
+
+```text
+/readme-generator-pro
+```
+
+或使用自然语言：
+
+```text
+使用 readme-generator-pro 启动 README Generator Pro Web UI
+```
+
+### 注意事项
+
+- `.env` 中可能包含 API Key。若保留 `.env`，不要将 skill 目录提交到公开仓库。
+- `agents/openai.yaml` 主要用于 Codex 的 UI 展示，Claude Code 通常会忽略它，保留即可。
+- 如果新增 skill 后 Codex 或 Claude Code 没有立即识别，重启对应工具或开启新会话即可。
+- skill 包装只增加 AI 助手调用方式，不改变本项目原有 Web UI、REST API 或 `python run.py` 运行方式。
+
+---
 ## 📖 API 文档
 
 ### `POST /api/generate`

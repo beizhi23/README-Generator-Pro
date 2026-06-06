@@ -89,56 +89,99 @@ async def generate_project_html(
         model_name: Optional[str] = None,
         api_base: Optional[str] = None
 ) -> str:
-    """生成论文风格的项目介绍 HTML 页面，包含 Mermaid 图表和 GitHub 链接"""
+    """生成论文风格的项目介绍 HTML 页面（简洁学术风，无 Mermaid）"""
 
     # 准备文件结构（JSON 字符串）
     file_tree_json = project_info.get("file_tree_json", {})
     import json
     file_tree_str = json.dumps(file_tree_json, indent=2, ensure_ascii=False)[:2000]
 
-    # 构建详细的提示
+    # 构建完整的提示
     prompt = f"""
-你是一位技术文档专家和前端设计师。请根据以下项目信息，生成一个完整的、可直接在浏览器中打开的 HTML 文档。
-该文档应具有以下特点：
-- 论文级别的排版，专业、清晰、精美，适合展示项目全貌。
-- 包含以下章节：项目概述、核心架构、模块详解、安装与使用、API 参考、贡献指南、许可证。
-- 必须包含至少 3 个 Mermaid 图表（例如：系统架构图、模块依赖图、数据流图或项目目录结构图）。
-- 包含一个醒目的 GitHub 链接按钮，点击后跳转到指定的仓库地址（地址由外部提供：{github_url if github_url else "未提供，请先占位并提示用户设置"}）。
-- 样式现代，支持明/暗色自适应（或提供优雅的浅色主题），使用 Flexbox/Grid 布局，代码块使用深色背景。
-- 无需任何外部依赖（但允许使用 FontAwesome、Google Fonts 等 CDN，以及 Mermaid CDN）。
-- 页面标题自动从项目名称生成。
-- 内容真实，基于以下数据生成，不得编造不存在的功能。
+你是一位顶级的学术项目网页设计师和前端工程师。请根据以下项目信息，生成一个以下风格的HTML页面。
 
-项目分析结果：
-- 项目名称/来源：{project_info.get('source_name', '未知项目')}
+## 页面核心设计规范（必须严格遵守）
+1. **整体布局**：
+   - 全页面居中对齐，最大宽度1200px，左右自动边距
+   - 极简白色背景，黑色文字，无多余装饰
+   - 所有内容垂直居中排列
+   - 顶部有足够的内边距（padding-top: 80px）
+
+2. **标题区域**：
+   - 项目标题使用超大号粗体字体（font-size: 3.5rem）
+   - 标题自动换行，居中显示
+   - 标题下方有足够的间距（margin-bottom: 40px）
+
+3. **作者区域**：
+   - 作者列表使用中等大小字体（font-size: 1.5rem）
+   - 作者名字之间用逗号分隔
+   - 作者单位用上标数字标注（如¹, ², ³）
+   - 通讯作者用*标注，项目负责人用†标注
+   - 作者列表下方是单位列表，对应上标数字
+   - 单位列表下方是通讯作者/项目负责人说明（灰色小字）
+
+4. **按钮区域**：
+   - 三个等宽的圆角黑色按钮（border-radius: 9999px）
+   - 按钮内文字为白色，包含FontAwesome图标
+   - 按钮之间有20px间距
+   - 按钮悬停时有轻微的透明度变化
+   - 按钮文字分别为：📄 Paper、💻 Code、🚀 Demo（根据项目实际情况调整）
+
+5. **内容区域**：
+   - 按钮下方是项目展示图片/视频区域
+   - 图片宽度100%，圆角显示
+   - 下方可添加项目概述、效果展示、引用等章节
+   - 保持简洁的排版风格
+
+## 必须包含的内容
+- 项目完整标题（从项目名称自动生成）
+- 作者列表（如果项目信息中没有，使用"Anonymous Authors"占位）
+- 单位列表（如果没有，使用"Research Institution"占位）
+- 三个核心按钮：Paper、Code、Demo（根据实际情况调整文字和链接）
+- GitHub链接按钮（跳转到：{github_url if github_url else "#"}）
+- 项目概述段落
+- 至少1张项目效果展示图（使用占位图，提示用户替换）
+- BibTeX引用格式
+
+## 技术要求
+- 使用Tailwind CSS CDN进行样式设计
+- 使用FontAwesome CDN提供图标
+- 无需任何外部JavaScript依赖
+- 响应式设计，适配移动端
+- 代码简洁高效，无冗余
+- 直接输出完整的HTML代码，不要包含任何解释文字
+
+## 项目分析信息
+- 项目名称：{project_info.get('source_name', '未知项目')}
 - 主要语言：{project_info.get('language')}
 - 使用的框架：{project_info.get('framework')}
-- 依赖库摘要：{project_info.get('dependencies')}
-- 入口文件：{project_info.get('entry_points')}
 - 许可证类型：{project_info.get('license')}
+- GitHub仓库：{github_url if github_url else "未提供"}
+- 入口文件：{project_info.get('entry_points')}
+- 依赖库：{project_info.get('dependencies')}
 - 是否包含示例代码：{project_info.get('has_examples')}
 
-文件结构（JSON 树）：
+## 项目文件结构
 {file_tree_str}
 
-关键代码片段（入口文件前 2000 字符）：
+
+## 关键代码片段（入口文件前2000字符）
 {project_info.get('code_snippets', {})}
 
-文件内容片段（其他关键文件）：
+## 文件内容片段
 { {k: v[:800] for k, v in project_info.get('file_contents', {}).items() if k in project_info.get('entry_points', [])[:3]} }
 
-请直接输出完整的 HTML 代码，确保 Mermaid 图表正确加载（在 <head> 中引入 Mermaid，并调用 mermaid.initialize）。不要包含任何解释文字。
+请严格按照上述设计规范生成HTML代码。直接输出完整的HTML代码，不要包含任何解释文字。
 """
-    # 调用 LLM，使用较大的 max_tokens
+    # 调用 LLM
     html_content = await llm_service.generate_readme(
         prompt,
         model=model_name,
         api_base=api_base,
-        max_tokens=8000  # 足够生成完整页面
+        max_tokens=8000
     )
-    # 确保返回的内容是完整的 HTML，如果模型可能输出多余标记，简单清理
+    # 确保返回的内容是完整的 HTML
     if not html_content.strip().startswith("<!DOCTYPE html>"):
-        # 尝试从第一个 <html 或 <!DOCTYPE 开始截取
         import re
         match = re.search(r'(<!DOCTYPE html>.*|<\s*html.*)', html_content, re.DOTALL | re.IGNORECASE)
         if match:

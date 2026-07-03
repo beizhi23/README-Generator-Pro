@@ -12,8 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Create app (first time only)
-        run: flyctl apps create readme-generator-pro --org personal || true
+      - name: Create app (first time)
+        run: flyctl apps create readme-generator-pro
+        continue-on-error: true
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - name: Deploy

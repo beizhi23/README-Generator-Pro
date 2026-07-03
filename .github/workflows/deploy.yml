@@ -12,10 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Create app (first time only)
+        run: flyctl apps create readme-generator-pro --org personal || true
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - name: Deploy
-        run: |
-          cd readme-generator-pro/assets/readme-generator-pro
-          ls -la fly.toml Dockerfile
-          flyctl deploy --remote-only
+        working-directory: readme-generator-pro/assets/readme-generator-pro
+        run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

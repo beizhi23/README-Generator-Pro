@@ -2,7 +2,6 @@ services:
   - type: web
     name: readme-generator-pro
     runtime: docker
-    rootDir: readme-generator-pro/assets/readme-generator-pro
     plan: free
     envVars:
       - key: PORT

@@ -5,6 +5,14 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688)](https://fastapi.tiangolo.com/)
 [![OpenAI](https://img.shields.io/badge/LLM-API-412991)](https://platform.openai.com/)
 
+## 🌐 在线体验
+
+无需安装，直接在浏览器中试用：
+
+👉 **[readme-generator-pro.onrender.com](https://readme-generator-pro.onrender.com/)**
+
+> ⚠️ Render 免费实例在闲置后会休眠，首次访问可能需要等待 30–60 秒启动。
+
 **README Generator Pro** 是一款基于大语言模型（LLM）的智能文档生成工具。只需提供 GitHub 仓库链接或上传工程文件夹，即可在数秒内自动生成结构完整、排版美观、内容专业的 `README.md` 文件。同时支持一键生成**论文级别的项目介绍网页**（`project_page.html`），包含 Mermaid 架构图、模块详解和 GitHub 跳转链接，适合项目展示与分享。
 
 > ⚠️ 注意： 1.当前版本侧重于核心 README 生成与项目理解，Issues 自动生成 FAQ 功能尚在开发中，预计后续版本支持；

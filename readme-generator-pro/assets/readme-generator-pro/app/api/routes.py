@@ -601,5 +601,4 @@ async def _get_user_api_key(authorization: str = Header(None)) -> Optional[str]:
     return None
 
 
-        user_api_key = await _get_user_api_key(authorization)
     user_api_key = await _get_user_api_key(authorization)

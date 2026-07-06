@@ -13,7 +13,7 @@ import os
 import tempfile
 import shutil
 import zipfile
-from typing import List
+from typing import List, Optional
 from app.core.generator import generate_project_html
 from app.core.auth import get_current_user, supabase as sb_client, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 from app.models.schemas import UserSettings, DocumentHistoryItem

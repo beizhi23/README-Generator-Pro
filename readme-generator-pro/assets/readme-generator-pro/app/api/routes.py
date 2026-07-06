@@ -1,6 +1,6 @@
 from app.models.schemas import GenerateResponse, ModifyRequest
 import uuid
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Header, Depends
 from fastapi.responses import StreamingResponse
 from app.services.task_manager import task_manager
 from app.core.analyzer import ProjectAnalyzer

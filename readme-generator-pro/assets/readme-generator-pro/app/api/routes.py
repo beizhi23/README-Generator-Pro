@@ -15,6 +15,9 @@ import shutil
 import zipfile
 from typing import List
 from app.core.generator import generate_project_html
+from app.core.auth import get_current_user, supabase as sb_client, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+from app.models.schemas import UserSettings, DocumentHistoryItem
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -32,7 +35,8 @@ async def generate_readme_endpoint(
     platform_target: str = Form("github"),
     model_name: str = Form(None),
     api_base: str = Form(None),
-    ignored_files: str = Form("")
+    ignored_files: str = Form(""),
+    authorization: str = Header(None)
 ):
     session_id = str(uuid.uuid4())
     temp_dir = None
@@ -85,7 +89,8 @@ async def generate_readme_endpoint(
             user_requirements,
             platform_target,
             model_name=model_name,
-            api_base=api_base
+            api_base=api_base,
+            api_key=user_api_key
         )
         adapted_readme = adapt_markdown_for_platform(raw_readme, platform_target)
 
@@ -113,7 +118,7 @@ async def generate_readme_endpoint(
 
 
 @router.post("/modify", response_model=GenerateResponse)
-async def modify_readme(req: ModifyRequest):
+async def modify_readme(req: ModifyRequest, authorization: str = Header(None)):
     session = sessions.get(req.session_id)
     if not session:
         raise HTTPException(404, "会话不存在")
@@ -127,7 +132,8 @@ async def modify_readme(req: ModifyRequest):
         user_requirements=req.modification,
         platform=req.platform_target,
         model_name=model_name,
-        api_base=api_base
+        api_base=api_base,
+        api_key=user_api_key
     )
     adapted = adapt_markdown_for_platform(new_readme, req.platform_target)
     session["last_readme"] = adapted
@@ -499,3 +505,101 @@ async def generate_html_page(
     except Exception as e:
         logger.error(f"生成 HTML 页面失败: {e}")
         raise HTTPException(500, f"生成失败: {str(e)}")
+
+
+# ========== Auth & User Routes ==========
+
+@router.get("/auth/me")
+async def get_me(user_id: str = Depends(get_current_user)):
+    settings = {}
+    if sb_client:
+        r = sb_client.table("user_settings").select("*").eq("user_id", user_id).execute()
+        if r.data:
+            settings = {
+                "api_key": r.data[0].get("api_key", ""),
+                "api_base": r.data[0].get("api_base", "https://api.openai.com/v1"),
+                "model_name": r.data[0].get("model_name", "gpt-3.5-turbo")
+            }
+    return {"user_id": user_id, "settings": settings}
+
+
+@router.post("/settings")
+async def save_settings(
+    api_key: str = Form(""),
+    api_base: str = Form("https://api.openai.com/v1"),
+    model_name: str = Form("gpt-3.5-turbo"),
+    user_id: str = Depends(get_current_user)
+):
+    if sb_client:
+        sb_client.table("user_settings").upsert({
+            "user_id": user_id,
+            "api_key": api_key,
+            "api_base": api_base,
+            "model_name": model_name,
+            "updated_at": "now()"
+        }).execute()
+    return {"ok": True}
+
+
+@router.get("/settings")
+async def get_settings(user_id: str = Depends(get_current_user)):
+    if sb_client:
+        r = sb_client.table("user_settings").select("*").eq("user_id", user_id).execute()
+        if r.data:
+            return {
+                "api_key": r.data[0].get("api_key", ""),
+                "api_base": r.data[0].get("api_base", "https://api.openai.com/v1"),
+                "model_name": r.data[0].get("model_name", "gpt-3.5-turbo")
+            }
+    return {"api_key": "", "api_base": "https://api.openai.com/v1", "model_name": "gpt-3.5-turbo"}
+
+
+@router.get("/history")
+async def get_history(user_id: str = Depends(get_current_user)):
+    if sb_client:
+        r = sb_client.table("document_history").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(50).execute()
+        return {"history": r.data}
+    return {"history": []}
+
+
+@router.post("/history")
+async def save_history(
+    title: str = Form(...),
+    readme_content: str = Form(...),
+    project_source: str = Form(""),
+    platform_target: str = Form("github"),
+    user_id: str = Depends(get_current_user)
+):
+    if sb_client:
+        sb_client.table("document_history").insert({
+            "user_id": user_id,
+            "title": title,
+            "readme_content": readme_content,
+            "project_source": project_source,
+            "platform_target": platform_target
+        }).execute()
+    return {"ok": True}
+
+
+@router.delete("/history/{doc_id}")
+async def delete_history(doc_id: str, user_id: str = Depends(get_current_user)):
+    if sb_client:
+        sb_client.table("document_history").delete().eq("id", doc_id).eq("user_id", user_id).execute()
+    return {"ok": True}
+async def _get_user_api_key(authorization: str = Header(None)) -> Optional[str]:
+    """从 auth header 提取用户 API Key（可选，不影响未登录用户）"""
+    if not sb_client or not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.split(" ", 1)[1]
+    try:
+        user = sb_client.auth.get_user(token)
+        r = sb_client.table("user_settings").select("api_key").eq("user_id", user.user.id).execute()
+        if r.data and r.data[0].get("api_key"):
+            return r.data[0]["api_key"]
+    except Exception:
+        pass
+    return None
+
+
+        user_api_key = await _get_user_api_key(authorization)
+    user_api_key = await _get_user_api_key(authorization)

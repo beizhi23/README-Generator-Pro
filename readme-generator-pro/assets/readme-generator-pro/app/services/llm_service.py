@@ -31,13 +31,15 @@ class LLMService:
         return AsyncOpenAI(api_key=self.api_key, base_url=base)
 
     async def generate_readme(self, prompt: str, model: Optional[str] = None,
-                              api_base: Optional[str] = None, max_tokens: int = 8000) -> str:
+                              api_base: Optional[str] = None, max_tokens: int = 8000,
+                              api_key: Optional[str] = None) -> str:
         if self.use_mock:
             logger.info("使用 Mock 模式生成 README")
             return self._mock_readme(prompt)
 
         try:
-            client = self._get_client(api_base)
+            key = api_key or self.api_key
+            client = self._get_client_with_key(api_base, key)
             selected_model = model or self.default_model
             response = await client.chat.completions.create(
                 model=selected_model,
@@ -131,3 +133,11 @@ class LLMService:
 
     def _mock_chat(self, question: str) -> str:
         return f"[Mock] 这是模拟回答。您问的是：{question}\n请配置有效的 LLM_API_KEY 以获得真实回答。"
+    def _get_client_with_key(self, api_base: Optional[str] = None, api_key: Optional[str] = None):
+        if self.use_mock:
+            raise RuntimeError("Mock mode, no real LLM client")
+        base = api_base or self.default_api_base
+        key = api_key or self.api_key
+        if not key:
+            raise ValueError("No API key available")
+        return AsyncOpenAI(api_key=key, base_url=base)

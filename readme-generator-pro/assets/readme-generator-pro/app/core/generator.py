@@ -9,7 +9,8 @@ async def generate_readme(
     user_requirements: Optional[str] = None,
     platform: str = "github",
     model_name: Optional[str] = None,
-    api_base: Optional[str] = None
+    api_base: Optional[str] = None,
+    api_key: Optional[str] = None
 ) -> str:
     # 构建详细的 prompt
     prompt = f"""
@@ -48,7 +49,7 @@ FAQ 内容：
 
 请直接输出 Markdown 文本，不要包含额外解释。
 """
-    readme = await llm_service.generate_readme(prompt, model=model_name, api_base=api_base)
+    readme = await llm_service.generate_readme(prompt, model=model_name, api_base=api_base, api_key=api_key)
     return readme
 
 async def generate_understanding(project_info: dict, model_name: str = None, api_base: str = None) -> str:

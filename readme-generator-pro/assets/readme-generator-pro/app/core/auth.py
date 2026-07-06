@@ -1,3 +1,4 @@
+import os
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
@@ -18,7 +19,6 @@ async def get_current_user(authorization: str = Header(None)):
         return user.user.id
     except Exception:
         raise HTTPException(401, "Session expired, please login again")
-import os
 from fastapi import Header, HTTPException
 from supabase import create_client, Client
 
